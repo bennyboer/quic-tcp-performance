@@ -13,7 +13,24 @@ First and foremost you'll have to fetch all needed dependencies of the project. 
 
 ### Build
 
-Before obtaining a runnable executable file you'll have to run `go build main.go` to build the program.
-A `main.exe` file will be created right next to the `main.go` file in the root of the repository.
+Before obtaining a runnable executable file you'll have to run `go build qtm.go` to build the program.
+A `main.exe` file will be created right next to the `qtm.go` file in the root of the repository.
 
-Try executing it from the command line: `main.exe` or `main` on the command line!
+> `qtm` is the name of the tool, which is short for **"QUIC / TCP measurement"**.
+
+Try executing it from the command line: `qtm.exe` or `qtm` on the command line!
+
+### Application modes
+
+You can start the command line measurement tool in either **server** or **client** mode.
+To start the tool in server mode append the flag `--server` on startup. If you omit the `--server` flag the tool is started in *client* mode by default.
+
+##### Start tool in **client** mode
+```sh
+qtm
+```
+
+##### Start tool in **server** mode
+```sh
+qtm --server
+```
