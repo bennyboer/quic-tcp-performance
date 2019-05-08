@@ -1,43 +1,45 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/bennyboer/quic-tcp-performance/client"
 	"github.com/bennyboer/quic-tcp-performance/server"
-)
-
-const (
-	defaultServerAddress = "localhost:19191"
+	"github.com/bennyboer/quic-tcp-performance/util/cli"
+	"log"
 )
 
 func main() {
-	isServerMode := flag.Bool("server", false, "Whether the measurement tool should be started in server mode")
-	addr := flag.String("address", defaultServerAddress, "Address at which to bind the server (if started in server mode) or at which to connect (if started in client mode)")
+	opt := cli.ParseOptions()
 
-	flag.Parse()
+	if opt.IsServerMode {
+		log.Println("Tool started in SERVER mode")
 
-	if *isServerMode {
-		fmt.Println("Tool started in SERVER mode")
-
-		_, e := server.NewServer(addr)
-		if e != nil {
-			panic(e)
+		s, err := server.NewServer(opt)
+		if err != nil {
+			log.Fatalln(err.Error())
 		}
-	} else {
-		fmt.Println("Tool started in CLIENT mode")
 
-		c, e := client.NewClient(addr)
-		if e != nil {
-			panic(e)
+		wg, err := s.Listen(&opt.Address)
+		if err != nil {
+			log.Fatalf("Server could not start listening: %s", err.Error())
+		}
+
+		wg.Wait() // Wait for server termination
+	} else {
+		log.Println("Tool started in CLIENT mode")
+
+		c, err := client.NewClient(opt)
+		if err != nil {
+			log.Fatalln(err.Error())
 		}
 
 		message := "Hello World"
-		response, e := c.Send(&message)
+		byteMessage := []byte(message)
+		response, e := c.SendSync(&byteMessage)
 		if e != nil {
 			panic(e)
 		}
 
-		fmt.Printf("Server responded with %s\n", *response)
+		fmt.Printf("Server responded with %s\n", string(*response))
 	}
 }
