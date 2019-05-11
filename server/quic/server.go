@@ -2,7 +2,7 @@ package quic
 
 import (
 	"crypto/tls"
-	"fmt"
+	"github.com/bennyboer/quic-tcp-performance/server/util"
 	"github.com/bennyboer/quic-tcp-performance/util/cli"
 	"github.com/bennyboer/quic-tcp-performance/util/connection_type"
 	"github.com/lucas-clemente/quic-go"
@@ -31,6 +31,7 @@ func (s *Server) GetType() connection_type.ConnectionType {
 }
 
 func (s *Server) Listen(addr *string) (*sync.WaitGroup, error) {
+	log.Println("Setting up QUIC listener")
 	listener, err := quic.ListenAddr(*addr, &s.tlsConfig, nil)
 	if err != nil {
 		return nil, err
@@ -65,14 +66,9 @@ func (s *Server) inSession(session *quic.Session, wg *sync.WaitGroup) {
 		return
 	}
 
-	_, err = io.Copy(loggingWriter{stream}, stream)
+	_, err = io.Copy(util.LoggingWriter{
+		Writer: stream,
+	}, stream)
 
 	wg.Done()
-}
-
-type loggingWriter struct{ io.Writer }
-
-func (w loggingWriter) Write(b []byte) (int, error) {
-	fmt.Printf("Server: Got '%s'\n", string(b))
-	return w.Writer.Write(b)
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/bennyboer/quic-tcp-performance/util/connection_type"
 	"github.com/lucas-clemente/quic-go"
 	"io"
+	"log"
 )
 
 // QUIC Client implementation.
@@ -17,6 +18,7 @@ type Client struct {
 
 // Create new QUIC client.
 func NewClient(options *cli.Options) (*Client, error) {
+	log.Println("Connecting via QUIC")
 	session, err := quic.DialAddr(options.Address, &options.TlsConfiguration, nil)
 	if err != nil {
 		return nil, err
