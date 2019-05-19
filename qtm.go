@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/bennyboer/quic-tcp-performance/client"
 	"github.com/bennyboer/quic-tcp-performance/server"
 	"github.com/bennyboer/quic-tcp-performance/util/cli"
@@ -33,13 +32,29 @@ func main() {
 			log.Fatalln(err.Error())
 		}
 
-		message := "Hello World"
-		byteMessage := []byte(message)
-		response, e := c.SendSync(&byteMessage)
-		if e != nil {
-			panic(e)
+		if opt.Bytes > -1 {
+			// Send the set amount of bytes to the server
+			time, err := c.SendBytes(opt.Bytes)
+			if err != nil {
+				log.Fatalf("Encountered error when trying to send %d bytes to the server. Error: %s", opt.Bytes, err.Error())
+			}
+
+			log.Printf("Sent %d bytes in %d nanoseconds", opt.Bytes, time.Nanoseconds());
+		} else if opt.Duration > -1 {
+			// Send for the set duration to the server
+			sentBytes, err := c.SendDuration(opt.Duration, opt.BufferSize)
+			if err != nil {
+				log.Fatalf("Encountered error when trying to send for %d ns to the server. Error: %s", opt.Duration.Nanoseconds(), err.Error())
+			}
+
+			log.Printf("Sent %d bytes in %d nanoseconds", sentBytes, opt.Duration.Nanoseconds());
+		} else {
+			log.Fatalf("You need to either set --bytes or --duration to measure throughput")
 		}
 
-		fmt.Printf("Server responded with %s\n", string(*response))
+		err = c.Cleanup()
+		if err != nil {
+			log.Fatalf("Could not cleanup client properly. Error: %s", err.Error())
+		}
 	}
 }

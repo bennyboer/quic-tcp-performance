@@ -59,6 +59,8 @@ func (s *Server) listen(listener quic.Listener, wg *sync.WaitGroup) {
 }
 
 func (s *Server) inSession(session *quic.Session, wg *sync.WaitGroup) {
+	log.Println("Accepted new connection")
+
 	stream, err := (*session).AcceptStream()
 	if err != nil {
 		log.Println("QUIC session failed while trying to accept stream. Cancelling session.")

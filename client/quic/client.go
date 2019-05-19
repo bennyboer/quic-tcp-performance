@@ -2,12 +2,11 @@ package quic
 
 import (
 	"bytes"
-	"encoding/gob"
 	"github.com/bennyboer/quic-tcp-performance/util/cli"
 	"github.com/bennyboer/quic-tcp-performance/util/connection_type"
 	"github.com/lucas-clemente/quic-go"
-	"io"
 	"log"
+	"time"
 )
 
 // QUIC Client implementation.
@@ -35,31 +34,75 @@ func (c *Client) GetType() connection_type.ConnectionType {
 	return connection_type.QUIC
 }
 
-func (c *Client) SendSync(message *[]byte) (*[]byte, error) {
+func (c *Client) SendDuration(duration time.Duration, bufferSize int) (int64, error) {
 	stream, err := c.session.OpenStreamSync()
 	if err != nil {
-		return nil, err
+		return -1, err
 	}
 
-	// Convert message to byte array
+	if bufferSize <= 0 {
+		bufferSize = 1 // As small as possible
+	}
+
+	// Write buffer first
 	var buffer bytes.Buffer
-	enc := gob.NewEncoder(&buffer)
-	if err := enc.Encode(message); err != nil {
-		return nil, err
+	for i := 0; i < bufferSize; i++ {
+		buffer.WriteByte(0)
+	}
+	b := buffer.Bytes()
+
+	end := time.Now().Add(duration)
+
+	var i int64 = 0
+	for {
+		_, err = stream.Write(b)
+		if err != nil {
+			return -1, err
+		}
+
+		if time.Now().After(end) {
+			break
+		}
+
+		i++
 	}
 
-	_, err = stream.Write(buffer.Bytes())
+	err = stream.Close()
 	if err != nil {
-		return nil, err
+		return -1, err
 	}
 
-	response := &bytes.Buffer{}
-	_, err = io.Copy(stream, response)
+	return i * int64(bufferSize), nil
+}
+
+func (c *Client) SendBytes(numBytes int64) (time.Duration, error) {
+	stream, err := c.session.OpenStreamSync()
 	if err != nil {
-		return nil, err
+		return -1, err
 	}
 
-	responseBytes := response.Bytes()
+	var buffer bytes.Buffer
+	var i int64 = 0
+	for ; i < numBytes; i++ {
+		buffer.WriteByte(0) // Write zero byte
+	}
+	b := buffer.Bytes()
 
-	return &responseBytes, nil
+	start := time.Now()
+
+	_, err = stream.Write(b)
+	if err != nil {
+		return -1, err
+	}
+
+	err = stream.Close()
+	if err != nil {
+		return -1, err
+	}
+
+	return time.Since(start), nil
+}
+
+func (c *Client) Cleanup() error {
+	return c.session.Close()
 }

@@ -34,3 +34,42 @@ qtm
 ```sh
 qtm --server
 ```
+
+### Usage
+
+Tool syntax:
+```sh
+qtm <flag 1> <flag 2> ... <flag n>
+```
+
+> The flags can be in the format `-server` or `--server`
+
+#### Connection Type
+
+There are two connection types available:
+
+- TCP
+- QUIC
+
+Set the connection type either if you configure nothing (The used connection type is QUIC) or if you provide the `--type` flag with the connection type. **Example:** `qtm --type=TCP`.
+
+#### Measuring Throughput
+
+In order to measure the throughput, you can either use:
+
+- `--bytes` (**Example**: `qtm --bytes=10000000`) to send the set amount of bytes
+- `--duration` with `--buffer-size` where you'll send for the set duration in chunks of the set buffer-size. (**Example**: `qtm --duration=5s --buffer-size=1024`)
+
+##### TCP measuring example
+
+Start the server with:
+```sh
+qtm --server --type=TCP
+```
+
+Start the client with:
+```sh
+qtm --type=TCP --bytes=100000000
+```
+
+... and see what happens!

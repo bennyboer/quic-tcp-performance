@@ -10,6 +10,7 @@ import (
 	"github.com/bennyboer/quic-tcp-performance/util/connection_type"
 	"log"
 	"math/big"
+	"time"
 )
 
 const (
@@ -36,6 +37,15 @@ type Options struct {
 
 	// TLS configuration to use
 	TlsConfiguration tls.Config
+
+	// Send until the Duration is over
+	Duration time.Duration
+
+	// Send the amount of Bytes over to the server
+	Bytes int64
+
+	// Send to the server with the set buffer size, use in connection with Duration.
+	BufferSize int
 }
 
 // Parse the CLI options.
@@ -44,6 +54,9 @@ func ParseOptions() *Options {
 	address := flag.String("address", defaultServerAddress, "Address at which to bind the server (if started in server mode) or at which to connect to (if started in client mode)")
 	connectionTypeName := flag.String("type", defaultConnectionTypeName, "type of the connection (Either 'QUIC' or 'TCP')")
 	tlsEnabled := flag.Bool("tls", true, "Whether TLS is enabled (Cannot be turned of for some protocols (e. g. QUIC)")
+	duration := flag.Duration("duration", -1, "Duration to send Bytes to the server")
+	bytes := flag.Int64("bytes", -1, "Number of Bytes to send to the server")
+	bufferSize := flag.Int("buffer-size", -1, "Size of the buffer when sending to the server. Use in connection with --duration measuring")
 
 	// TODO Parse certificate and private key flags for custom TLS configuration
 
@@ -81,6 +94,9 @@ func ParseOptions() *Options {
 		ConnectionType:   connectionType,
 		TlsEnabled:       *tlsEnabled,
 		TlsConfiguration: tlsConfiguration,
+		Duration:         *duration,
+		Bytes:            *bytes,
+		BufferSize:       *bufferSize,
 	}
 }
 
