@@ -40,6 +40,7 @@ func main() {
 			}
 
 			log.Printf("Sent %d bytes in %d nanoseconds", opt.Bytes, time.Nanoseconds());
+			log.Printf("%d Mbit/s",opt.Bytes*8/1000000/(time.Nanoseconds()/1000000000));
 		} else if opt.Duration > -1 {
 			// Send for the set duration to the server
 			sentBytes, err := c.SendDuration(opt.Duration, opt.BufferSize)
@@ -48,6 +49,7 @@ func main() {
 			}
 
 			log.Printf("Sent %d bytes in %d nanoseconds", sentBytes, opt.Duration.Nanoseconds());
+			log.Printf("%d Mbit/s",sentBytes*8/1000000/(opt.Duration.Nanoseconds()/1000000000));
 		} else {
 			log.Fatalf("You need to either set --bytes or --duration to measure throughput")
 		}
